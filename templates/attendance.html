@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Mark Attendance</h2>
+
+<form method="post" class="card shadow-sm border-0 p-3 bg-white">
+    <div class="mb-3">
+        <label class="form-label">Select Date</label>
+        <input type="date" name="date" class="form-control" value="{{ today }}" required>
+    </div>
+
+    {% if students|length == 0 %}
+        <p>No students available. Please add students first.</p>
+    {% else %}
+    <table class="table table-striped table-bordered mt-3">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Present</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for s in students %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ s.roll_no }}</td>
+                <td>{{ s.name }}</td>
+                <td class="text-center">
+                    <input type="checkbox" name="present_ids" value="{{ s.id }}">
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-success">Save Attendance</button>
+    {% endif %}
+</form>
+{% endblock %}

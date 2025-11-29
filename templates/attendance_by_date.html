@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Attendance for Date</h2>
+
+<form method="get" class="card shadow-sm border-0 p-3 bg-white mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Select Date</label>
+            <input type="date" name="date" class="form-control" value="{{ date_str }}" required>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">View</button>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center">
+                <h4 class="fw-bold text-success mb-1">{{ present_count }}</h4>
+                <p class="text-muted mb-0">Present</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center">
+                <h4 class="fw-bold text-danger mb-1">{{ absent_count }}</h4>
+                <p class="text-muted mb-0">Absent</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center">
+                <h4 class="fw-bold mb-1">{{ not_marked }}</h4>
+                <p class="text-muted mb-0">Not Marked</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table table-striped table-bordered bg-white shadow-sm">
+    <thead class="table-light">
+        <tr>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for r in records %}
+        <tr>
+            <td>{{ r.roll_no }}</td>
+            <td>{{ r.name }}</td>
+            <td class="{% if r.status == 'Present' %}text-success{% elif r.status == 'Absent' %}text-danger{% else %}text-muted{% endif %}">
+                {{ r.status }}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Attendance Records</h2>
+
+{% if records|length == 0 %}
+  <p>No attendance marked yet.</p>
+{% else %}
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Roll No</th>
+      <th>Name</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in records %}
+    <tr>
+      <td>{{ r.date }}</td>
+      <td>{{ r.roll_no }}</td>
+      <td>{{ r.name }}</td>
+      <td>{{ r.status }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<a href="{{ url_for('attendance') }}" class="btn btn-primary mt-2">Mark Attendance</a>
+{% endblock %}

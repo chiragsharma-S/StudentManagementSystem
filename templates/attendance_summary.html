@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="page-title mb-3">Attendance Summary</h2>
+
+<!-- Low attendance section -->
+{% if low_students and low_students|length > 0 %}
+<div class="card card-soft mb-4">
+  <div class="card-body">
+    <h5 class="mb-2">⚠ Students Below 75% Attendance</h5>
+    <p class="text-muted small mb-2">These students may need attention.</p>
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Present</th>
+            <th>Absent</th>
+            <th>Total Days</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for s in low_students %}
+          <tr>
+            <td>{{ s.roll_no }}</td>
+            <td>{{ s.name }}</td>
+            <td>{{ s.presents }}</td>
+            <td>{{ s.absents }}</td>
+            <td>{{ s.total }}</td>
+            <td>{{ s.percent }}%</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Full summary table -->
+<div class="card card-soft">
+  <div class="card-body">
+    <h5 class="mb-3">Overall Attendance per Student</h5>
+
+    {% if summary|length == 0 %}
+      <p>No attendance records available yet.</p>
+    {% else %}
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Present</th>
+            <th>Absent</th>
+            <th>Total Days</th>
+            <th>Attendance %</th>
+            <th>Category</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for s in summary %}
+          <tr>
+            <td>{{ s.roll_no }}</td>
+            <td>{{ s.name }}</td>
+            <td>{{ s.presents }}</td>
+            <td>{{ s.absents }}</td>
+            <td>{{ s.total }}</td>
+            <td>{{ s.percent }}%</td>
+            <td>
+              {% if s.category == 'Excellent' %}
+                <span class="badge bg-success badge-soft">Excellent</span>
+              {% elif s.category == 'Good' %}
+                <span class="badge bg-primary badge-soft">Good</span>
+              {% elif s.category == 'Needs Improvement' %}
+                <span class="badge bg-danger badge-soft">Needs Improvement</span>
+              {% else %}
+                <span class="badge bg-secondary badge-soft">No Data</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5">
+    <div class="card card-soft p-3">
+      <h3 class="mb-3 text-center">Register New Teacher</h3>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Department / Course</label>
+          <select name="department" class="form-control" required>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="ME">Mechanical Engineering</option>
+            <option value="CE">Civil Engineering</option>
+            <option value="EE">Electrical Engineering</option>
+            <option value="IT">IT</option>
+            <option value="BCA">BCA</option>
+            <option value="BBA">BBA</option>
+            <option value="BCom">B.Com</option>
+            <option value="MCA">MCA</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Admin Secret Code</label>
+          <input type="password" name="code" class="form-control" placeholder="Enter admin code" required>
+        </div>
+        <button type="submit" class="btn btn-dark w-100">Register Teacher</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

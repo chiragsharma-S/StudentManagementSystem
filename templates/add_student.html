@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card card-soft">
+  <div class="card-body">
+    <h2 class="page-title mb-3">Add Student</h2>
+
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Roll No</label>
+        <input type="text" name="roll_no" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input type="text" name="name" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Course</label>
+        <select name="course" class="form-control" required>
+          <option value="" disabled selected>Select course</option>
+          <option value="CSE">CSE (Computer Science Engineering)</option>
+          <option value="ECE">ECE (Electronics & Communication)</option>
+          <option value="ME">ME (Mechanical Engineering)</option>
+          <option value="CE">CE (Civil Engineering)</option>
+          <option value="EE">EE (Electrical Engineering)</option>
+          <option value="IT">IT (Information Technology)</option>
+          <option value="BCA">BCA</option>
+          <option value="BBA">BBA</option>
+          <option value="BCom">B.Com</option>
+          <option value="MCA">MCA</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Semester</label>
+        <input type="number" name="semester" class="form-control" min="1" max="12">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Phone</label>
+        <input type="text" name="phone" class="form-control">
+      </div>
+
+      <button type="submit" class="btn btn-success">Save</button>
+      <a href="{{ url_for('students') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
