@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card card-soft">
+  <div class="card-body">
+    <h2 class="page-title mb-3">Set Login for {{ student.name }} ({{ student.roll_no }})</h2>
+
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Student Username</label>
+        <input type="text" name="student_username"
+               class="form-control"
+               value="{{ student.student_username or '' }}"
+               required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Student Password</label>
+        <input type="password" name="student_password" class="form-control" required>
+        <small class="text-muted">
+          You can share this password with the student. It will be stored securely (hashed).
+        </small>
+      </div>
+      <button type="submit" class="btn btn-success">Save Login</button>
+      <a href="{{ url_for('students') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

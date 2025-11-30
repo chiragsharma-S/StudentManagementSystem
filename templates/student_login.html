@@ -1,0 +1,40 @@
+{% extends "student_base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-4">
+    <div class="card card-soft p-4 text-center">
+      <h3 class="mb-4">Student Login</h3>
+      <form method="post" class="text-start">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-dark w-100 mb-2">Login</button>
+      </form>
+
+      <div class="mt-3">
+        <small class="text-muted d-block mb-3">
+          Login details are provided by your teacher.
+        </small>
+      </div>
+
+      <hr>
+
+      <!-- 🔹 Teacher options section -->
+      <div class="mt-3">
+        <p class="mb-2 fw-semibold">Are you a teacher?</p>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary w-100 mb-2">
+          Login as Teacher
+        </a>
+        <a href="{{ url_for('register_teacher') }}" class="btn btn-outline-primary w-100">
+          Create Teacher Account
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
