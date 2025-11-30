@@ -1,3 +1,4 @@
+
 print("Starting Flask app...")
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
@@ -198,30 +199,66 @@ def students():
     if not require_login():
         return redirect(url_for("login"))
 
-    department = current_department()
+    # Search text and selected course from URL
     q = request.args.get("q", "").strip()
+    selected_course = request.args.get("course", "").strip()
 
     conn = get_db_connection()
 
-    if q:
+    # Get distinct course list for dropdown
+    course_rows = conn.execute(
+        "SELECT DISTINCT course FROM students ORDER BY course"
+    ).fetchall()
+    courses = [r["course"] for r in course_rows]
+
+    # Build query based on filters
+    if selected_course and q:
         like = f"%{q}%"
         students_rows = conn.execute(
             """
             SELECT * FROM students
-            WHERE department = ?
+            WHERE course = ?
               AND (roll_no LIKE ? OR name LIKE ? OR course LIKE ?)
-            ORDER BY roll_no
-        """,
-            (department, like, like, like),
+            ORDER BY course, roll_no
+            """,
+            (selected_course, like, like, like),
+        ).fetchall()
+    elif selected_course:
+        students_rows = conn.execute(
+            """
+            SELECT * FROM students
+            WHERE course = ?
+            ORDER BY course, roll_no
+            """,
+            (selected_course,),
+        ).fetchall()
+    elif q:
+        like = f"%{q}%"
+        students_rows = conn.execute(
+            """
+            SELECT * FROM students
+            WHERE roll_no LIKE ? OR name LIKE ? OR course LIKE ?
+            ORDER BY course, roll_no
+            """,
+            (like, like, like),
         ).fetchall()
     else:
         students_rows = conn.execute(
-            "SELECT * FROM students WHERE department = ? ORDER BY roll_no",
-            (department,),
+            """
+            SELECT * FROM students
+            ORDER BY course, roll_no
+            """,
         ).fetchall()
 
     conn.close()
-    return render_template("index.html", students=students_rows, q=q)
+    return render_template(
+        "index.html",
+        students=students_rows,
+        q=q,
+        courses=courses,
+        selected_course=selected_course,
+    )
+
 
 
 # Add student (assigned to current teacher's department)
@@ -308,6 +345,129 @@ def edit_student(id):
     conn.close()
     return render_template("edit_student.html", student=student)
 
+@app.route("/students/<int:id>/set_login", methods=["GET", "POST"])
+def set_student_login(id):
+    if not require_login():
+        return redirect(url_for("login"))
+
+    department = current_department()
+    conn = get_db_connection()
+    student = conn.execute(
+        "SELECT * FROM students WHERE id = ? AND department = ?",
+        (id, department),
+    ).fetchone()
+
+    if not student:
+        conn.close()
+        return "Student not found or not in your department.", 404
+
+    if request.method == "POST":
+        username = request.form.get("student_username", "").strip()
+        password = request.form.get("student_password", "").strip()
+
+        if not username or not password:
+            flash("Username and password are required.", "danger")
+            conn.close()
+            return redirect(url_for("set_student_login", id=id))
+
+        password_hash = generate_password_hash(password)
+
+        conn.execute(
+            """
+            UPDATE students
+            SET student_username = ?, student_password_hash = ?
+            WHERE id = ? AND department = ?
+            """,
+            (username, password_hash, id, department),
+        )
+        conn.commit()
+        conn.close()
+
+        flash("Student login credentials set successfully.", "success")
+        return redirect(url_for("students"))
+
+    conn.close()
+    return render_template("set_student_login.html", student=student)
+
+@app.route("/student/login", methods=["GET", "POST"])
+def student_login():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+
+        conn = get_db_connection()
+        student = conn.execute(
+            "SELECT * FROM students WHERE student_username = ?",
+            (username,),
+        ).fetchone()
+        conn.close()
+
+        if student and student["student_password_hash"]:
+            if check_password_hash(student["student_password_hash"], password):
+                # set student session
+                session["student_id"] = student["id"]
+                session["student_name"] = student["name"]
+                session["student_roll_no"] = student["roll_no"]
+                flash("Student login successful.", "success")
+                return redirect(url_for("student_dashboard"))
+        
+        flash("Invalid username or password.", "danger")
+
+    return render_template("student_login.html")
+
+@app.route("/student/logout")
+def student_logout():
+    session.pop("student_id", None)
+    session.pop("student_name", None)
+    session.pop("student_roll_no", None)
+    flash("Student logged out.", "success")
+    return redirect(url_for("student_login"))
+
+@app.route("/student/dashboard")
+def student_dashboard():
+    student_id = session.get("student_id")
+    if not student_id:
+        flash("Please login as student.", "danger")
+        return redirect(url_for("student_login"))
+
+    conn = get_db_connection()
+    student = conn.execute(
+        "SELECT * FROM students WHERE id = ?",
+        (student_id,),
+    ).fetchone()
+
+    if not student:
+        conn.close()
+        flash("Student not found.", "danger")
+        return redirect(url_for("student_login"))
+
+    records = conn.execute(
+        """
+        SELECT date, status
+        FROM attendance
+        WHERE student_id = ?
+        ORDER BY date DESC
+        """,
+        (student_id,),
+    ).fetchall()
+    conn.close()
+
+    total = len(records)
+    presents = sum(1 for r in records if r["status"] == "Present")
+    absents = sum(1 for r in records if r["status"] == "Absent")
+    percent = (presents / total * 100) if total > 0 else 0
+
+    return render_template(
+        "student_dashboard.html",
+        student=student,
+        records=records,
+        total=total,
+        presents=presents,
+        absents=absents,
+        percent=round(percent, 1),
+    )
+
+
 
 # Delete student (department-safe)
 @app.route("/delete/<int:id>", methods=["POST"])
@@ -334,30 +494,47 @@ def attendance():
     if not require_login():
         return redirect(url_for("login"))
 
-    department = current_department()
     conn = get_db_connection()
-    students_rows = conn.execute(
-        "SELECT * FROM students WHERE department = ? ORDER BY roll_no",
-        (department,),
-    ).fetchall()
+
+    # list of all distinct courses for dropdown
+    courses = [row["course"] for row in conn.execute(
+        "SELECT DISTINCT course FROM students ORDER BY course"
+    ).fetchall()]
+
+    # which course is selected? (works for GET and POST)
+    selected_course = request.values.get("course", "")
+
+    # choose students based on selected course
+    if selected_course:
+        students = conn.execute(
+            "SELECT * FROM students WHERE course = ? ORDER BY roll_no",
+            (selected_course,),
+        ).fetchall()
+    else:
+        # default: show no students until a course is chosen
+        students = []
 
     if request.method == "POST":
         date_str = request.form["date"]
-        present_ids = request.form.getlist("present_ids")
+        present_ids = request.form.getlist("present_ids")  # list of ids as strings
 
-        # Remove old records for this date for this department
-        conn.execute(
-            """
-            DELETE FROM attendance
-            WHERE date = ?
-              AND student_id IN (
-                  SELECT id FROM students WHERE department = ?
-              )
-            """,
-            (date_str, department),
-        )
+        # Remove old records for this date (for these students)
+        if selected_course:
+            # delete attendance for this course and date
+            conn.execute(
+                """
+                DELETE FROM attendance
+                WHERE date = ?
+                  AND student_id IN (
+                      SELECT id FROM students WHERE course = ?
+                  )
+                """,
+                (date_str, selected_course),
+            )
+        else:
+            conn.execute("DELETE FROM attendance WHERE date = ?", (date_str,))
 
-        for s in students_rows:
+        for s in students:
             sid = str(s["id"])
             status = "Present" if sid in present_ids else "Absent"
             conn.execute(
@@ -367,13 +544,19 @@ def attendance():
 
         conn.commit()
         conn.close()
-
-        flash(f"Attendance saved for {date_str}.", "success")
-        return redirect(url_for("students"))
+        flash(f"Attendance saved for {date_str} ({selected_course or 'All courses'})", "success")
+        return redirect(url_for("attendance"))
 
     today = date.today().isoformat()
     conn.close()
-    return render_template("attendance.html", students=students_rows, today=today)
+    return render_template(
+        "attendance.html",
+        students=students,
+        today=today,
+        courses=courses,
+        selected_course=selected_course,
+    )
+
 
 
 # Per-student attendance details (within department)
