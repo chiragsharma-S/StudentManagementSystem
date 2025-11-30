@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% block content %}
 <div class="row justify-content-center mt-5">
@@ -13,12 +14,20 @@
           <label class="form-label">Password</label>
           <input type="password" name="password" class="form-control" required>
         </div>
-        <button type="submit" class="btn btn-dark w-100 mb-2">Login</button>
+        <button type="submit" class="btn btn-dark w-100 mb-2">Login as Teacher</button>
       </form>
 
-      <div class="text-center mt-2">
-        <small class="text-muted">New user?</small><br>
-        <a href="{{ url_for('register_teacher') }}" class="btn btn-sm btn-outline-secondary mt-1">
+      <div class="text-center mt-3">
+        <small class="text-muted d-block mb-1">Are you a student?</small>
+        <!-- 👇 This button goes to student login, no need to edit URL manually -->
+        <a href="{{ url_for('student_login') }}" class="btn btn-sm btn-outline-secondary w-100">
+          Login as Student
+        </a>
+      </div>
+
+      <div class="text-center mt-3">
+        <small class="text-muted d-block mb-1">New teacher?</small>
+        <a href="{{ url_for('register_teacher') }}" class="btn btn-sm btn-outline-primary w-100">
           Create a teacher account
         </a>
       </div>
